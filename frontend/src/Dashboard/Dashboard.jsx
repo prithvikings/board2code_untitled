@@ -1,22 +1,38 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  GameControllerIcon,
-  RobotIcon,
-  UsersIcon,
-  UsersThreeIcon,
-  SignOutIcon,
-  ArrowRightIcon,
+  GameController as GameControllerIcon,
+  Robot as RobotIcon,
+  Users as UsersIcon,
+  UsersThree as UsersThreeIcon,
+  SignOut as SignOutIcon,
+  ArrowRight as ArrowRightIcon,
+  User as UserIcon,
+  Gear as GearIcon,
+  BookOpen as BookOpenIcon,
+  CaretDown as CaretDownIcon,
 } from "@phosphor-icons/react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
     navigate("/");
   };
 
-  // Explicitly defining Tailwind classes to prevent PurgeCSS issues
   const modes = [
     {
       id: "ranked",
@@ -103,25 +119,69 @@ const Dashboard = () => {
             Tiki<span className="text-lime-400">Topple</span>
           </h1>
 
-          <div className="flex items-center gap-6">
-            {/* Premium Player Profile Pill */}
-            <div className="hidden sm:flex items-center gap-2 bg-zinc-900/80 border border-zinc-800 px-3 py-1.5 rounded-full">
+          <div className="flex items-center gap-4 relative" ref={dropdownRef}>
+            {/* Interactive Profile Trigger */}
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center gap-2 bg-zinc-900/80 hover:bg-zinc-800 transition-colors border border-zinc-800 px-3 py-1.5 rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-lime-500/50"
+            >
               <div className="w-2 h-2 rounded-full bg-lime-500 animate-pulse"></div>
               <span className="text-zinc-300 text-xs font-bold tracking-wider uppercase">
                 Player One
               </span>
-            </div>
-
-            <button
-              onClick={handleLogout}
-              className="group text-zinc-500 hover:text-white transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-widest border border-transparent hover:border-zinc-800 px-3 py-1.5 rounded-lg hover:bg-zinc-900"
-            >
-              <SignOutIcon
-                size={16}
-                className="group-hover:text-red-500 transition-colors"
+              <CaretDownIcon
+                size={14}
+                className={`text-zinc-500 transition-transform duration-300 ${
+                  isDropdownOpen ? "rotate-180" : ""
+                }`}
               />
-              <span>Logout</span>
             </button>
+
+            {/* Subtle Dropdown Menu */}
+            {isDropdownOpen && (
+              <div className="absolute top-full right-0 mt-2 w-48 bg-[#121214] border border-zinc-800/80 rounded-xl shadow-2xl py-2 z-50 flex flex-col animate-in fade-in slide-in-from-top-2 duration-200">
+                <button
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    navigate("/profile");
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors"
+                >
+                  <UserIcon size={16} />
+                  My Profile
+                </button>
+                <button
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    navigate("/settings");
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors"
+                >
+                  <GearIcon size={16} />
+                  Settings
+                </button>
+                <button
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    navigate("/rules");
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors"
+                >
+                  <BookOpenIcon size={16} />
+                  Game Rules
+                </button>
+
+                <div className="h-px bg-zinc-800/80 my-1 mx-2"></div>
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                >
+                  <SignOutIcon size={16} />
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>

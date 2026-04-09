@@ -10,6 +10,8 @@ import CustomLobby from "./Dashboard/Modes/CustomLobby";
 import Rules from "./Pages/Rules";
 import PrivacyPolicy from "./Pages/PrivacyPolicy";
 import Terms from "./Pages/Terms";
+import Profile from "./Pages/Profile";
+import Settings from "./Pages/Settings";
 
 const App = () => {
   return (
@@ -25,6 +27,8 @@ const App = () => {
         <Route path="/rules" element={<Rules />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/settings" element={<Settings />} />
       </Routes>
     </div>
   );
