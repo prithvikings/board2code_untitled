@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   GithubLogoIcon,
   ArrowUpRightIcon,
@@ -6,6 +7,8 @@ import {
 } from "@phosphor-icons/react";
 
 const Footer = () => {
+  const navigate = useNavigate();
+
   return (
     <footer className="border-t border-zinc-800/50 bg-gradient-to-b from-[#0a0a0a] to-[#050505] pt-20 pb-8 font-chakra relative overflow-hidden">
       {/* Subtle top glow */}
@@ -41,19 +44,19 @@ const Footer = () => {
               <span className="text-white font-bold tracking-widest text-sm uppercase mb-2">
                 Hackathon
               </span>
-              <a
-                href="#rules"
-                className="group flex items-center gap-1 text-zinc-400 text-sm font-semibold hover:text-[#a3e635] transition-colors"
+              <button
+                onClick={() => navigate('/rules')}
+                className="group flex items-center gap-1 text-zinc-400 text-sm font-semibold hover:text-[#a3e635] transition-colors uppercase"
               >
                 Game Rules
                 <ArrowUpRightIcon
                   size={14}
                   className="opacity-0 -translate-x-2 translate-y-2 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-300"
                 />
-              </a>
+              </button>
               <a
                 href="#"
-                className="group flex items-center gap-1 text-zinc-400 text-sm font-semibold hover:text-[#a3e635] transition-colors"
+                className="group flex items-center gap-1 text-zinc-400 text-sm font-semibold hover:text-[#a3e635] transition-colors uppercase"
               >
                 Documentation
                 <ArrowUpRightIcon
@@ -65,22 +68,27 @@ const Footer = () => {
 
             <div className="flex flex-col gap-4">
               <span className="text-white font-bold tracking-widest text-sm uppercase mb-2">
-                Project
+                Legal & Project
               </span>
               <a
                 href="#"
-                className="group flex items-center gap-2 text-zinc-400 text-sm font-semibold hover:text-white transition-colors"
+                className="group flex items-center gap-2 text-zinc-400 text-sm font-semibold hover:text-white transition-colors uppercase"
               >
                 <GithubLogoIcon size={16} />
                 Source Code
               </a>
-              <a
-                href="#"
-                className="group flex items-center gap-1 text-lime-400 text-sm font-semibold hover:text-lime-300 transition-colors"
+              <button
+                onClick={() => navigate('/privacy')}
+                className="group flex items-center gap-1 text-zinc-400 text-sm font-semibold hover:text-zinc-300 transition-colors uppercase"
               >
-                Play Demo
-                <div className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse ml-1"></div>
-              </a>
+                Privacy Policy
+              </button>
+              <button
+                onClick={() => navigate('/terms')}
+                className="group flex items-center gap-1 text-zinc-400 text-sm font-semibold hover:text-zinc-300 transition-colors uppercase"
+              >
+                Terms of Service
+              </button>
             </div>
           </div>
         </div>

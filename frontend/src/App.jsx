@@ -7,6 +7,9 @@ import RankedLobby from "./Dashboard/Modes/RankedLobby";
 import BotLobby from "./Dashboard/Modes/BotLobby";
 import LocalLobby from "./Dashboard/Modes/LocalLobby";
 import CustomLobby from "./Dashboard/Modes/CustomLobby";
+import Rules from "./Pages/Rules";
+import PrivacyPolicy from "./Pages/PrivacyPolicy";
+import Terms from "./Pages/Terms";
 
 const App = () => {
   return (
@@ -19,6 +22,9 @@ const App = () => {
         <Route path="/dashboard/bot" element={<BotLobby />} />
         <Route path="/dashboard/local" element={<LocalLobby />} />
         <Route path="/dashboard/custom" element={<CustomLobby />} />
+        <Route path="/rules" element={<Rules />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<Terms />} />
       </Routes>
     </div>
   );

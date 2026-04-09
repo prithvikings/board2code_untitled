@@ -31,12 +31,12 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-6 text-zinc-300 font-medium">
-          <a
-            href="#rules"
-            className="hidden md:block hover:text-lime-400 transition-colors"
+          <button
+            onClick={() => navigate('/rules')}
+            className="hidden md:block hover:text-lime-400 transition-colors uppercase font-bold text-xs tracking-widest"
           >
             Rules
-          </a>
+          </button>
 
           <a
             href="https://github.com/your-repo"
