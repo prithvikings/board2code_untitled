@@ -1,0 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Chakra+Petch:wght@300;400;500;600;700&family=Nunito+Sans:wght@200..1000&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@theme {
+  --font-chakra: "Chakra Petch", sans-serif;
+  --font-bebas: "Bebas Neue", sans-serif;
+  --font-nunito: "Nunito Sans", sans-serif;
+  --font-poppins: "Poppins", sans-serif;
+}
+
+@import "tailwindcss";
