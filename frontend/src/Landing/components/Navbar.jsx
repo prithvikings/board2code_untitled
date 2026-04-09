@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { GithubLogoIcon } from "@phosphor-icons/react";
+import { GithubLogoIcon, SignOutIcon } from "@phosphor-icons/react";
+import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -11,6 +14,16 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logged out successfully");
+      navigate("/");
+    } catch (error) {
+      toast.error("Failed to log out");
+    }
+  };
 
   return (
     <header
@@ -48,12 +61,33 @@ const Navbar = () => {
             <span>Repo</span>
           </a>
 
-          <button 
-            onClick={() => navigate('/login')}
-            className="bg-[#18181b] text-white font-chakra font-bold uppercase tracking-wide px-5 py-2 rounded-xl border-2 border-[#a3e635] shadow-[0px_4px_0px_0px_#a3e635] hover:bg-[#27272a] hover:-translate-y-0.5 hover:shadow-[0px_6px_0px_0px_#a3e635] active:shadow-[0px_0px_0px_0px_#a3e635] active:translate-y-1 transition-all cursor-pointer"
-          >
-            Play Now
-          </button>
+          {user ? (
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => navigate('/dashboard')}
+                className="bg-[#18181b] text-white font-chakra font-bold uppercase tracking-wide pl-2 pr-5 py-1.5 rounded-xl border-2 border-[#a3e635] shadow-[0px_4px_0px_0px_#a3e635] hover:bg-[#27272a] hover:-translate-y-0.5 hover:shadow-[0px_6px_0px_0px_#a3e635] active:shadow-[0px_0px_0px_0px_#a3e635] active:translate-y-1 transition-all cursor-pointer flex items-center gap-2"
+              >
+                <div className="w-7 h-7 bg-zinc-800 rounded-lg overflow-hidden border border-[#a3e635]/50 shrink-0">
+                  <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user?.avatarSeed || user?._id || "default"}`} alt="Avatar" className="w-full h-full object-cover" />
+                </div>
+                <span>Dashboard</span>
+              </button>
+              <button 
+                onClick={handleLogout}
+                className="hidden sm:flex text-zinc-400 hover:text-red-400 transition-colors px-2"
+                title="Logout"
+              >
+                <SignOutIcon size={24} />
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={() => navigate('/login')}
+              className="bg-[#18181b] text-white font-chakra font-bold uppercase tracking-wide px-5 py-2 rounded-xl border-2 border-[#a3e635] shadow-[0px_4px_0px_0px_#a3e635] hover:bg-[#27272a] hover:-translate-y-0.5 hover:shadow-[0px_6px_0px_0px_#a3e635] active:shadow-[0px_0px_0px_0px_#a3e635] active:translate-y-1 transition-all cursor-pointer"
+            >
+              Play Now
+            </button>
+          )}
         </div>
       </div>
     </header>

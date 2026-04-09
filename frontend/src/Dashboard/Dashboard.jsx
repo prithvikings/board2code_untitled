@@ -11,11 +11,19 @@ import {
   Gear as GearIcon,
   BookOpen as BookOpenIcon,
   CaretDown as CaretDownIcon,
+  SpeakerHigh as SpeakerHighIcon,
+  SpeakerSlash as SpeakerSlashIcon
 } from "@phosphor-icons/react";
+import { useAuth } from "../context/AuthContext";
+import { useAudio } from "../context/AudioContext";
+import toast from "react-hot-toast";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { isMuted, toggleMute } = useAudio();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showGuestModal, setShowGuestModal] = useState(false);
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -29,8 +37,14 @@ const Dashboard = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logged out successfully");
+      navigate("/");
+    } catch (error) {
+      toast.error("Failed to log out");
+    }
   };
 
   const modes = [
@@ -123,11 +137,13 @@ const Dashboard = () => {
             {/* Interactive Profile Trigger */}
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 bg-zinc-900/80 hover:bg-zinc-800 transition-colors border border-zinc-800 px-3 py-1.5 rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-lime-500/50"
+              className="flex items-center gap-2.5 bg-zinc-900/80 hover:bg-zinc-800 transition-colors border border-zinc-800 pl-2 pr-4 py-1.5 rounded-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-lime-500/50"
             >
-              <div className="w-2 h-2 rounded-full bg-lime-500 animate-pulse"></div>
+              <div className="w-6 h-6 rounded-full overflow-hidden bg-zinc-950 border border-zinc-700 flex items-center justify-center shrink-0">
+                <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user?.avatarSeed || user?._id || "default"}`} alt="Avatar" className="w-full h-full object-cover" />
+              </div>
               <span className="text-zinc-300 text-xs font-bold tracking-wider uppercase">
-                Player One
+                {user?.name || "Player"}
               </span>
               <CaretDownIcon
                 size={14}
@@ -143,6 +159,10 @@ const Dashboard = () => {
                 <button
                   onClick={() => {
                     setIsDropdownOpen(false);
+                    if (user?.isGuest) {
+                      setShowGuestModal(true);
+                      return;
+                    }
                     navigate("/profile");
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors"
@@ -153,6 +173,10 @@ const Dashboard = () => {
                 <button
                   onClick={() => {
                     setIsDropdownOpen(false);
+                    if (user?.isGuest) {
+                      setShowGuestModal(true);
+                      return;
+                    }
                     navigate("/settings");
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors"
@@ -206,7 +230,13 @@ const Dashboard = () => {
           {modes.map((mode) => (
             <div
               key={mode.id}
-              onClick={() => navigate(`/dashboard/${mode.id}`)}
+              onClick={() => {
+                if (user?.isGuest && (mode.id === "ranked" || mode.id === "custom")) {
+                  setShowGuestModal(true);
+                  return;
+                }
+                navigate(`/dashboard/${mode.id}`);
+              }}
               className={`bg-[#121214] p-8 md:p-10 rounded-2xl border-2 border-zinc-800 transition-all duration-300 cursor-pointer group relative overflow-hidden ${mode.hoverStyle}`}
             >
               {/* Subtle Inner Glow on Hover based on card color */}
@@ -248,6 +278,51 @@ const Dashboard = () => {
           ))}
         </div>
       </main>
+
+      {/* Guest Restriction Modal */}
+      {showGuestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-[#121214] border border-zinc-800 rounded-2xl p-8 max-w-sm w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 text-center">
+            <h2 className="text-xl font-bold text-white mb-3 flex items-center justify-center gap-2">
+              <UserIcon size={24} className="text-lime-400" />
+              Account Required
+            </h2>
+            <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
+              Oops! This feature is restricted to registered players. Create an account to track your ELO, customize your profile, and play online.
+            </p>
+            <div className="flex flex-col gap-3">
+               <button 
+                 onClick={() => {
+                   setShowGuestModal(false);
+                   logout();
+                 }}
+                 className="w-full bg-lime-500 text-zinc-900 font-bold uppercase tracking-widest px-4 py-3 rounded-xl hover:bg-lime-400 active:scale-95 transition-all text-xs"
+               >
+                 Create Account
+               </button>
+               <button 
+                 onClick={() => setShowGuestModal(false)}
+                 className="w-full bg-transparent border border-zinc-700 text-zinc-400 font-bold uppercase tracking-widest px-4 py-3 rounded-xl hover:bg-zinc-800 hover:text-white active:scale-95 transition-all text-xs"
+               >
+                 Maybe Later
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Global Audio Controls */}
+      <button
+        onClick={toggleMute}
+        className="fixed bottom-8 right-8 z-50 p-3 bg-zinc-900/90 backdrop-blur-md border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition-all rounded-full shadow-[0px_0px_20px_0px_rgba(0,0,0,0.5)] focus:outline-none focus:ring-2 focus:ring-lime-500/50 group"
+        title={isMuted ? "Unmute Audio" : "Mute Audio"}
+      >
+        {isMuted ? (
+          <SpeakerSlashIcon size={22} className="group-hover:scale-110 transition-transform" />
+        ) : (
+          <SpeakerHighIcon size={22} className="group-hover:scale-110 transition-transform text-lime-400" />
+        )}
+      </button>
     </div>
   );
 };

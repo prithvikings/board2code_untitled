@@ -11,23 +11,81 @@ import {
   Camera as CameraIcon,
   FloppyDisk as FloppyDiskIcon,
 } from "@phosphor-icons/react";
+import { useAuth } from "../context/AuthContext";
+import { useAudio } from "../context/AudioContext";
+
+import toast from "react-hot-toast";
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { user, updateProfile, updatePassword } = useAuth();
+  const { musicVolume, setMusicVolume } = useAudio();
   const [activeTab, setActiveTab] = useState("account");
 
   // Preferences State
   const [sfxVolume, setSfxVolume] = useState(80);
-  const [musicVolume, setMusicVolume] = useState(60);
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
 
   // Profile State
-  const [displayName, setDisplayName] = useState("Player One");
-  const [email, setEmail] = useState("player@example.com");
+  const [displayName, setDisplayName] = useState(user?.name || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [avatarSeed, setAvatarSeed] = useState(user?.avatarSeed || user?._id || "default");
+
+
+  // Password State
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    if (user) {
+      setDisplayName(user.name);
+      setEmail(user.email);
+      setAvatarSeed(user.avatarSeed || user._id || "default");
+    }
+  }, [user]);
+
+  const generateNewAvatar = () => {
+    const randomSeed = Math.random().toString(36).substring(2, 10);
+    setAvatarSeed(randomSeed);
+  };
+
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    let successCount = 0;
+
+    // Check Profile Changes
+    if (displayName !== user?.name || email !== user?.email || avatarSeed !== (user?.avatarSeed || user?._id || "default")) {
+      try {
+        await updateProfile(displayName, email, avatarSeed);
+        toast.success("Profile updated successfully");
+        successCount++;
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to update profile");
+      }
+    }
+
+    // Check Password Changes
+    if (currentPassword || newPassword) {
+      try {
+        await updatePassword(currentPassword, newPassword);
+        toast.success("Password updated securely");
+        setCurrentPassword("");
+        setNewPassword("");
+        successCount++;
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Password update failed. Verify current password.");
+      }
+    }
+
+    if (successCount === 0 && (displayName === user?.name && email === user?.email && avatarSeed === (user?.avatarSeed || user?._id || "default")) && !currentPassword && !newPassword) {
+      toast("No changes to save.", { icon: "ℹ️" });
+    }
+    
+    setIsSaving(false);
+  };
 
   const tabs = [
     {
@@ -103,17 +161,21 @@ const Settings = () => {
               <div className="flex flex-col md:flex-row gap-8 mb-8">
                 {/* Avatar Edit */}
                 <div className="flex flex-col items-center gap-4">
-                  <div className="w-24 h-24 bg-zinc-900 border-2 border-zinc-700 rounded-full flex items-center justify-center relative group cursor-pointer overflow-hidden">
-                    <UserCircleIcon
-                      size={48}
-                      className="text-zinc-500 group-hover:opacity-0 transition-opacity"
+                  <div 
+                    onClick={generateNewAvatar}
+                    className="w-24 h-24 bg-zinc-900 border-2 border-zinc-700 rounded-full flex items-center justify-center relative group cursor-pointer overflow-hidden p-1"
+                  >
+                    <img 
+                      src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${avatarSeed}`} 
+                      alt="Pixel Avatar" 
+                      className="w-full h-full rounded-full object-cover group-hover:opacity-20 transition-opacity"
                     />
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
                       <CameraIcon size={24} className="text-white" />
                     </div>
                   </div>
-                  <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">
-                    Change Avatar
+                  <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest cursor-pointer hover:text-white transition-colors" onClick={generateNewAvatar}>
+                    Regenerate DiceBear
                   </span>
                 </div>
 
@@ -151,6 +213,8 @@ const Settings = () => {
                 <div>
                   <input
                     type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="Current Password"
                     className="w-full bg-[#151518] border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-lime-500/50 transition-all font-poppins text-sm placeholder:text-zinc-600"
                   />
@@ -158,6 +222,8 @@ const Settings = () => {
                 <div>
                   <input
                     type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="New Password"
                     className="w-full bg-[#151518] border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-lime-500/50 transition-all font-poppins text-sm placeholder:text-zinc-600"
                   />
@@ -165,9 +231,13 @@ const Settings = () => {
               </div>
 
               <div className="flex justify-end pt-4 border-t border-zinc-800/50">
-                <button className="flex items-center gap-2 bg-lime-500 text-zinc-900 px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-lime-400 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_#4d7c0f] transition-all">
+                <button 
+                  onClick={handleSaveProfile}
+                  disabled={isSaving}
+                  className="flex items-center gap-2 bg-lime-500 text-zinc-900 px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-lime-400 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_#4d7c0f] transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                >
                   <FloppyDiskIcon size={18} />
-                  Save Changes
+                  {isSaving ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             </div>

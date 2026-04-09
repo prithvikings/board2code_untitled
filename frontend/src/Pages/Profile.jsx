@@ -13,13 +13,32 @@ import {
   Skull as SkullIcon,
   Lightning as LightningIcon,
 } from "@phosphor-icons/react";
+import { useAuth } from "../context/AuthContext";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Safe defaults if user lacks stats (e.g., existing db entries before stats schema update)
+  const stats = user?.stats || {
+    elo: 1200,
+    matchesPlayed: 0,
+    wins: 0,
+    tikisToppled: 0,
+    highestStreak: 0
+  };
+
+  const winRate = stats.matchesPlayed > 0 
+    ? ((stats.wins / stats.matchesPlayed) * 100).toFixed(1) 
+    : "0.0";
+
+  const joinDate = user?.createdAt 
+    ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : "Recently";
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-zinc-100 font-chakra p-6 md:p-12 relative flex flex-col items-center">
@@ -45,8 +64,8 @@ const Profile = () => {
           <div className="flex flex-col md:flex-row items-center gap-8 text-center md:text-left relative z-10">
             {/* Avatar & Level */}
             <div className="relative">
-              <div className="w-32 h-32 bg-zinc-900 border-4 border-lime-500 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(163,230,53,0.2)]">
-                <UserIcon size={48} className="text-lime-400" />
+              <div className="w-32 h-32 bg-zinc-900 border-4 border-lime-500 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(163,230,53,0.2)] overflow-hidden">
+                <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user?.avatarSeed || user?._id || "default"}`} alt="Avatar" className="w-full h-full object-cover" />
               </div>
               <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-lime-500 text-zinc-900 font-bold px-4 py-1 rounded-full text-xs border-4 border-[#0f0f11] shadow-lg whitespace-nowrap">
                 LVL 42
@@ -56,7 +75,7 @@ const Profile = () => {
             <div className="flex-1 w-full">
               <div className="flex items-center justify-center md:justify-start gap-3 mb-1">
                 <h1 className="text-4xl font-bebas tracking-wider text-white">
-                  Player One
+                  {user?.name || "Player"}
                 </h1>
                 <CrownIcon
                   size={24}
@@ -65,7 +84,7 @@ const Profile = () => {
                 />
               </div>
               <p className="text-zinc-400 font-poppins text-sm mb-6">
-                Joined: April 2026 • Tiki Master Tier
+                Joined: {joinDate} • Tiki Master Tier
               </p>
 
               {/* EXP Bar Gamification */}
@@ -88,7 +107,7 @@ const Profile = () => {
               <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
                 Ranked ELO
               </p>
-              <p className="font-mono font-bold text-2xl text-white">1,254</p>
+              <p className="font-mono font-bold text-2xl text-white">{stats.elo}</p>
             </div>
           </div>
         </div>
@@ -146,25 +165,25 @@ const Profile = () => {
                   <p className="text-[10px] uppercase text-zinc-500 mb-1">
                     Win Rate
                   </p>
-                  <p className="font-mono text-lg text-white">68.4%</p>
+                  <p className="font-mono text-lg text-white">{winRate}%</p>
                 </div>
                 <div className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800/50">
                   <p className="text-[10px] uppercase text-zinc-500 mb-1">
                     Matches
                   </p>
-                  <p className="font-mono text-lg text-white">342</p>
+                  <p className="font-mono text-lg text-white">{stats.matchesPlayed}</p>
                 </div>
                 <div className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800/50">
                   <p className="text-[10px] uppercase text-zinc-500 mb-1">
                     Tikis Toppled
                   </p>
-                  <p className="font-mono text-lg text-white">1,024</p>
+                  <p className="font-mono text-lg text-white">{stats.tikisToppled}</p>
                 </div>
                 <div className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800/50">
                   <p className="text-[10px] uppercase text-zinc-500 mb-1">
                     Highest Streak
                   </p>
-                  <p className="font-mono text-lg text-lime-400">12 W</p>
+                  <p className="font-mono text-lg text-lime-400">{stats.highestStreak} W</p>
                 </div>
               </div>
             </div>

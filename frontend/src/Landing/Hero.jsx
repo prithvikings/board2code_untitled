@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import Navbar from "./components/Navbar"; // Adjusted import path
 import { PlayIcon, SparkleIcon } from "@phosphor-icons/react";
 import Problem from "./components/Problem";
@@ -11,6 +12,7 @@ import Footer from "./components/Footer";
 
 const Hero = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   return (
     <div className="relative w-full flex flex-col">
@@ -46,7 +48,7 @@ const Hero = () => {
           {/* Enhanced CTA Area */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-5 mt-12 w-full">
             <button 
-              onClick={() => navigate('/login')}
+              onClick={() => navigate(user ? '/dashboard' : '/login')}
               className="w-full sm:w-auto group flex items-center justify-center gap-2 bg-[#18181b] text-white font-bold uppercase tracking-widest px-8 py-3.5 rounded-xl border-2 border-[#a3e635] shadow-[0px_4px_0px_0px_#a3e635] hover:bg-[#27272a] hover:-translate-y-1 hover:shadow-[0px_6px_0px_0px_#a3e635] active:shadow-[0px_0px_0px_0px_#a3e635] active:translate-y-1 transition-all cursor-pointer"
             >
               <PlayIcon

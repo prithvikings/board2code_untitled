@@ -1,23 +1,48 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   GameControllerIcon,
   GithubLogoIcon,
-  GoogleLogoIcon,
+  ArrowLeft as ArrowLeftIcon,
 } from "@phosphor-icons/react";
+import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login, loginAsGuest } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showSocialModal, setShowSocialModal] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleSocialClick = (e) => {
     e.preventDefault();
-    // Dummy authentication - redirects to dashboard directly
-    navigate("/dashboard");
+    setShowSocialModal(true);
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      await login(email, password);
+      toast.success("Welcome back!");
+      navigate("/dashboard");
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to login. Please check your credentials.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGuestPlay = () => {
+    loginAsGuest();
+    toast.success("Joined as Guest");
     navigate("/dashboard");
   };
 
@@ -25,6 +50,18 @@ const Login = () => {
     <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-6 relative overflow-hidden font-chakra">
       {/* Premium Agency Trick: Radial masked grid background so it fades out smoothly */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_80%)] pointer-events-none"></div>
+
+      {/* Back to Home Button */}
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-8 left-8 md:top-12 md:left-12 flex items-center gap-2 text-zinc-500 hover:text-white transition-colors uppercase font-bold text-[10px] tracking-widest z-10 group"
+      >
+        <ArrowLeftIcon
+          size={16}
+          className="group-hover:-translate-x-1 transition-transform"
+        />
+        Back to Home
+      </button>
 
       <div className="relative z-10 w-full max-w-md flex flex-col items-center">
         {/* Logo Header - Matched to Navbar */}
@@ -50,7 +87,7 @@ const Login = () => {
                 Username or Email
               </label>
               <input
-                type="text"
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="player@netpractice.com"
@@ -82,12 +119,13 @@ const Login = () => {
               />
             </div>
 
-            {/* Neo-brutalist Submit Button (Keeps design system consistent) */}
+            {/* Neo-brutalist Submit Button */}
             <button
               type="submit"
-              className="w-full bg-[#18181b] text-white font-chakra font-bold uppercase tracking-widest px-5 py-3.5 rounded-xl border-2 border-[#a3e635] shadow-[0px_4px_0px_0px_#a3e635] hover:bg-[#27272a] hover:-translate-y-0.5 hover:shadow-[0px_6px_0px_0px_#a3e635] active:shadow-[0px_0px_0px_0px_#a3e635] active:translate-y-1 transition-all cursor-pointer mt-2"
+              disabled={loading}
+              className="w-full bg-[#18181b] text-white font-chakra font-bold uppercase tracking-widest px-5 py-3.5 rounded-xl border-2 border-[#a3e635] shadow-[0px_4px_0px_0px_#a3e635] hover:bg-[#27272a] hover:-translate-y-0.5 hover:shadow-[0px_6px_0px_0px_#a3e635] active:shadow-[0px_0px_0px_0px_#a3e635] active:translate-y-1 transition-all cursor-pointer mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign In
+              {loading ? "Signing In..." : "Sign In"}
             </button>
           </form>
 
@@ -102,7 +140,10 @@ const Login = () => {
 
           {/* Social Auth */}
           <div className="grid grid-cols-2 gap-4">
-            <button className="flex items-center justify-center gap-3 bg-[#18181b] border border-zinc-800 rounded-xl py-3 text-zinc-400 hover:text-white hover:border-zinc-700 transition-all group">
+            <button 
+              onClick={handleSocialClick}
+              className="flex items-center justify-center gap-3 bg-[#18181b] border border-zinc-800 rounded-xl py-3 text-zinc-400 hover:text-white hover:border-zinc-700 transition-all group"
+            >
               <GithubLogoIcon
                 size={18}
                 className="group-hover:scale-110 transition-transform"
@@ -111,7 +152,10 @@ const Login = () => {
                 GitHub
               </span>
             </button>
-            <button className="flex items-center justify-center gap-3 bg-[#18181b] border border-zinc-800 rounded-xl py-3 text-zinc-400 hover:text-white hover:border-zinc-700 transition-all group">
+            <button 
+              onClick={handleSocialClick}
+              className="flex items-center justify-center gap-3 bg-[#18181b] border border-zinc-800 rounded-xl py-3 text-zinc-400 hover:text-white hover:border-zinc-700 transition-all group"
+            >
               {/* Clean Google SVG inline */}
               <svg
                 viewBox="0 0 24 24"
@@ -140,6 +184,15 @@ const Login = () => {
               </span>
             </button>
           </div>
+          
+          <div className="mt-6 text-center">
+            <p className="text-zinc-500 text-xs font-chakra font-bold tracking-widest">
+              Don't have an account?{" "}
+              <Link to="/signup" className="text-lime-500 hover:text-lime-400 transition-colors">
+                Sign Up
+              </Link>
+            </p>
+          </div>
         </div>
 
         {/* Guest Play */}
@@ -155,6 +208,24 @@ const Login = () => {
           </button>
         </div>
       </div>
+
+      {/* Social Auth Construction Modal */}
+      {showSocialModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-[#121214] border border-zinc-800 rounded-2xl p-8 max-w-sm w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-bold text-white mb-3">Under Construction 🚧</h2>
+            <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
+              We are still building it, you can access it by email and password.
+            </p>
+            <button 
+              onClick={() => setShowSocialModal(false)}
+              className="w-full bg-lime-500 text-zinc-900 font-bold uppercase tracking-widest px-4 py-3 rounded-xl hover:bg-lime-400 active:scale-95 transition-all text-xs"
+            >
+              Understood
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
