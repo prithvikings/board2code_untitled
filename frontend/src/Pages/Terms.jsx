@@ -1,6 +1,9 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeftIcon, FileTextIcon } from "@phosphor-icons/react";
+import {
+  ArrowLeft as ArrowLeftIcon,
+  FileText as FileTextIcon,
+} from "@phosphor-icons/react";
 
 const Terms = () => {
   const navigate = useNavigate();
@@ -10,50 +13,53 @@ const Terms = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-zinc-100 font-chakra p-6 md:p-12 relative flex flex-col items-center">
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_at_top,black_40%,transparent_80%)] pointer-events-none z-0"></div>
+    <div className="min-h-screen bg-[#0a0a0a] text-zinc-100 font-chakra p-4 md:p-8 relative flex flex-col items-center">
+      <div className="fixed inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_at_center,black_50%,transparent_100%)] pointer-events-none z-0"></div>
+      <div
+        className="fixed inset-0 opacity-[0.04] mix-blend-screen pointer-events-none z-0"
+        style={{
+          backgroundImage:
+            'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")',
+        }}
+      ></div>
 
       <button
         onClick={() => navigate("/")}
-        className="absolute top-8 left-8 md:top-12 md:left-12 flex items-center gap-2 text-zinc-500 hover:text-zinc-300 transition-colors uppercase font-bold text-[10px] tracking-widest z-10 group"
+        className="absolute top-6 left-4 md:top-8 md:left-8 flex items-center gap-2 bg-[#18181b] border-2 border-zinc-800 border-b-[3px] text-zinc-400 hover:text-white hover:bg-zinc-800 active:border-b-[1px] active:translate-y-[2px] transition-all px-4 py-2 rounded-xl uppercase font-black text-[10px] tracking-widest z-10"
       >
-        <ArrowLeftIcon
-          size={16}
-          className="group-hover:-translate-x-1 transition-transform"
-        />
-        Back to Home
+        <ArrowLeftIcon size={16} weight="bold" />
+        Back
       </button>
 
-      <div className="relative z-10 max-w-3xl w-full mt-16 md:mt-20 mb-12">
-        <div className="flex items-center gap-5 mb-10">
-          <div className="w-16 h-16 bg-purple-950/30 border border-purple-900/50 rounded-2xl flex items-center justify-center shadow-[0_0_15px_rgba(192,132,252,0.1)]">
-            <FileTextIcon
-              size={32}
-              className="text-purple-400"
-              weight="duotone"
-            />
+      <div className="relative z-10 max-w-3xl w-full mt-16 md:mt-12 mb-12">
+        {/* Header Block */}
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-5 mb-10 bg-[#18181b] border-2 border-zinc-800 border-b-[6px] rounded-[24px] p-6 md:p-8">
+          <div className="w-16 h-16 bg-zinc-900 border-2 border-zinc-700 border-b-[3px] rounded-2xl flex items-center justify-center shrink-0">
+            <FileTextIcon size={32} weight="fill" className="text-purple-400" />
           </div>
           <div>
-            <span className="text-purple-400 font-bold uppercase tracking-widest text-[10px]">
-              Legal
+            <span className="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-1 rounded-md font-black uppercase tracking-widest text-[9px] mb-2 inline-block">
+              Legal Agreement
             </span>
-            <h1 className="text-5xl md:text-6xl font-bebas tracking-wide text-zinc-100 drop-shadow-md">
+            <h1 className="text-4xl md:text-5xl font-bebas tracking-wide text-white leading-none mb-1">
               Terms of Service
             </h1>
+            <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px]">
+              Last updated: April 9, 2026
+            </p>
           </div>
         </div>
 
-        <div className="bg-[#0f0f11] border border-zinc-800/80 border-t-4 border-t-purple-500 p-8 md:p-12 rounded-2xl relative shadow-2xl font-poppins text-zinc-300 leading-relaxed text-sm md:text-base space-y-10">
-          <p className="text-purple-400/80 text-xs font-mono font-bold tracking-widest uppercase border-b border-zinc-800/80 pb-4 inline-block">
-            Last updated: April 9, 2026
-          </p>
-
-          <section className="relative pl-6 border-l-2 border-purple-500/20 hover:border-purple-500/50 transition-colors">
-            <h2 className="text-2xl font-bold text-white mb-3 font-chakra flex items-center gap-2">
-              <span className="text-purple-500 font-mono text-lg">01.</span>{" "}
+        {/* Modular Content Blocks */}
+        <div className="space-y-5 font-poppins">
+          <section className="bg-zinc-900 border-2 border-zinc-800 border-b-[3px] rounded-[20px] p-5 md:p-6">
+            <h2 className="text-xl font-black text-white mb-3 font-chakra uppercase tracking-wide flex items-center gap-3">
+              <span className="bg-purple-500 text-zinc-950 px-2 py-0.5 rounded-lg font-black text-base border-b-[3px] border-purple-700">
+                01
+              </span>
               Acceptance of Terms
             </h2>
-            <p className="text-zinc-400">
+            <p className="text-zinc-400 text-sm font-medium leading-relaxed">
               By accessing and playing Tiki Topple, you accept these terms of
               service. Since this application is developed as part of the NPC
               Board2Code Hackathon, the service is provided "as is" without
@@ -61,12 +67,14 @@ const Terms = () => {
             </p>
           </section>
 
-          <section className="relative pl-6 border-l-2 border-purple-500/20 hover:border-purple-500/50 transition-colors">
-            <h2 className="text-2xl font-bold text-white mb-3 font-chakra flex items-center gap-2">
-              <span className="text-purple-500 font-mono text-lg">02.</span>{" "}
+          <section className="bg-zinc-900 border-2 border-zinc-800 border-b-[3px] rounded-[20px] p-5 md:p-6">
+            <h2 className="text-xl font-black text-white mb-3 font-chakra uppercase tracking-wide flex items-center gap-3">
+              <span className="bg-purple-500 text-zinc-950 px-2 py-0.5 rounded-lg font-black text-base border-b-[3px] border-purple-700">
+                02
+              </span>
               Fair Play
             </h2>
-            <p className="text-zinc-400">
+            <p className="text-zinc-400 text-sm font-medium leading-relaxed bg-[#18181b] border-2 border-red-900/30 p-4 rounded-xl text-red-100">
               Players agree not to use third-party tools, scripts, or bots to
               gain an unfair advantage in ranked multiplayer matches. Violating
               these terms may result in immediate banishment from the
@@ -74,12 +82,14 @@ const Terms = () => {
             </p>
           </section>
 
-          <section className="relative pl-6 border-l-2 border-purple-500/20 hover:border-purple-500/50 transition-colors">
-            <h2 className="text-2xl font-bold text-white mb-3 font-chakra flex items-center gap-2">
-              <span className="text-purple-500 font-mono text-lg">03.</span>{" "}
+          <section className="bg-zinc-900 border-2 border-zinc-800 border-b-[3px] rounded-[20px] p-5 md:p-6">
+            <h2 className="text-xl font-black text-white mb-3 font-chakra uppercase tracking-wide flex items-center gap-3">
+              <span className="bg-purple-500 text-zinc-950 px-2 py-0.5 rounded-lg font-black text-base border-b-[3px] border-purple-700">
+                03
+              </span>
               Intellectual Property
             </h2>
-            <p className="text-zinc-400">
+            <p className="text-zinc-400 text-sm font-medium leading-relaxed">
               Tiki Topple game adaptations, UI, and custom assets created during
               the 24-hour hackathon belong to the submitting team, acknowledging
               any open-source libraries used.

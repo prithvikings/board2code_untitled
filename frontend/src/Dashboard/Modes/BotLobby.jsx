@@ -1,65 +1,89 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeftIcon, RobotIcon, PlayIcon } from "@phosphor-icons/react";
+import {
+  ArrowLeft as ArrowLeftIcon,
+  Robot as RobotIcon,
+  Play as PlayIcon,
+} from "@phosphor-icons/react";
 
 const BotLobby = () => {
   const navigate = useNavigate();
   const [difficulty, setDifficulty] = useState("medium");
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-zinc-100 font-chakra p-6 md:p-12 relative flex flex-col items-center justify-center">
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_at_top,black_40%,transparent_80%)] pointer-events-none z-0"></div>
+    <div className="min-h-screen bg-[#0a0a0a] text-zinc-100 font-chakra p-4 md:p-8 relative flex flex-col items-center justify-center">
+      {/* Premium Masked Grid + Noise Background */}
+      <div className="fixed inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_at_center,black_50%,transparent_100%)] pointer-events-none z-0"></div>
+      <div
+        className="fixed inset-0 opacity-[0.04] mix-blend-screen pointer-events-none z-0"
+        style={{
+          backgroundImage:
+            'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")',
+        }}
+      ></div>
 
       <button
         onClick={() => navigate("/dashboard")}
-        className="absolute top-8 left-8 md:top-12 md:left-12 flex items-center gap-2 text-zinc-500 hover:text-zinc-300 transition-colors uppercase font-bold text-[10px] tracking-widest z-10 group"
+        className="absolute top-6 left-4 md:top-8 md:left-8 flex items-center gap-2 bg-[#18181b] border-2 border-zinc-800 border-b-[3px] text-zinc-400 hover:text-white hover:bg-zinc-800 active:border-b-[1px] active:translate-y-[2px] transition-all px-4 py-2 rounded-xl uppercase font-black text-[10px] tracking-widest z-10"
       >
-        <ArrowLeftIcon
-          size={16}
-          className="group-hover:-translate-x-1 transition-transform"
-        />
-        Back to Dashboard
+        <ArrowLeftIcon size={16} weight="bold" />
+        Dashboard
       </button>
 
-      <div className="relative z-10 text-center max-w-lg w-full">
-        <div className="mx-auto w-20 h-20 bg-blue-950/30 border border-blue-900/50 rounded-2xl flex items-center justify-center mb-8 relative">
-          <RobotIcon size={40} className="text-blue-400" weight="duotone" />
+      <div className="relative z-10 text-center max-w-md w-full">
+        <div className="mx-auto w-24 h-24 bg-zinc-900 border-4 border-zinc-800 border-b-[6px] rounded-[24px] flex items-center justify-center mb-6 relative">
+          <RobotIcon size={48} className="text-blue-500" weight="fill" />
         </div>
 
-        <h1 className="text-5xl font-bebas tracking-wide mb-2 text-zinc-100">
+        <h1 className="text-5xl md:text-6xl font-bebas tracking-wide mb-2 text-white">
           Play vs AI
         </h1>
-        <p className="text-zinc-400 font-poppins mb-12 text-sm">
+        <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px] mb-8">
           Hone your stacking strategies against our Tiki Bot.
         </p>
 
-        <div className="bg-[#0f0f11] border border-zinc-800/80 p-8 md:p-10 rounded-2xl relative text-left shadow-2xl">
-          <h3 className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-4">
+        <div className="bg-[#18181b] border-2 border-zinc-800 border-b-[6px] p-6 md:p-8 rounded-[24px] relative text-left">
+          <h3 className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-4 pl-1">
             Select AI Difficulty
           </h3>
 
-          <div className="grid grid-cols-3 gap-3 md:gap-4 mb-8">
+          <div className="grid grid-cols-3 gap-3 mb-6">
             <button
               onClick={() => setDifficulty("easy")}
-              className={`py-3.5 rounded-xl border-2 font-bold uppercase tracking-widest text-[10px] transition-all flex flex-col items-center gap-1 ${difficulty === "easy" ? "bg-[#18181b] border-green-500 text-green-400 shadow-[0px_4px_0px_0px_#22c55e] -translate-y-0.5" : "bg-[#18181b] border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"}`}
+              className={`py-3.5 rounded-xl border-2 border-b-[4px] font-black uppercase tracking-widest text-[10px] transition-all flex flex-col items-center gap-1 active:border-b-[2px] active:translate-y-[2px] ${
+                difficulty === "easy"
+                  ? "bg-green-500 border-green-700 text-zinc-950"
+                  : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:bg-zinc-800 hover:text-white"
+              }`}
             >
               Easy
             </button>
             <button
               onClick={() => setDifficulty("medium")}
-              className={`py-3.5 rounded-xl border-2 font-bold uppercase tracking-widest text-[10px] transition-all flex flex-col items-center gap-1 ${difficulty === "medium" ? "bg-[#18181b] border-blue-500 text-blue-400 shadow-[0px_4px_0px_0px_#3b82f6] -translate-y-0.5" : "bg-[#18181b] border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"}`}
+              className={`py-3.5 rounded-xl border-2 border-b-[4px] font-black uppercase tracking-widest text-[10px] transition-all flex flex-col items-center gap-1 active:border-b-[2px] active:translate-y-[2px] ${
+                difficulty === "medium"
+                  ? "bg-blue-500 border-blue-700 text-zinc-950"
+                  : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:bg-zinc-800 hover:text-white"
+              }`}
             >
               Medium
             </button>
             <button
               onClick={() => setDifficulty("hard")}
-              className={`py-3.5 rounded-xl border-2 font-bold uppercase tracking-widest text-[10px] transition-all flex flex-col items-center gap-1 ${difficulty === "hard" ? "bg-[#18181b] border-red-500 text-red-500 shadow-[0px_4px_0px_0px_#ef4444] -translate-y-0.5" : "bg-[#18181b] border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"}`}
+              className={`py-3.5 rounded-xl border-2 border-b-[4px] font-black uppercase tracking-widest text-[10px] transition-all flex flex-col items-center gap-1 active:border-b-[2px] active:translate-y-[2px] ${
+                difficulty === "hard"
+                  ? "bg-red-500 border-red-700 text-zinc-950"
+                  : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:bg-zinc-800 hover:text-white"
+              }`}
             >
               Hard
             </button>
           </div>
 
-          <button className="w-full bg-[#18181b] text-white font-bold uppercase tracking-widest py-3.5 rounded-xl border-2 border-[#60a5fa] shadow-[0px_4px_0px_0px_#60a5fa] hover:bg-[#27272a] hover:-translate-y-0.5 hover:shadow-[0px_6px_0px_0px_#60a5fa] active:shadow-[0px_0px_0px_0px_#60a5fa] active:translate-y-1 transition-all flex items-center justify-center gap-2">
+          <button
+            onClick={() => navigate("/bot-game", { state: { difficulty } })}
+            className="w-full bg-blue-500 text-zinc-950 font-black uppercase tracking-widest py-4 rounded-xl border-2 border-blue-700 border-b-[4px] hover:bg-blue-400 active:border-b-[2px] active:translate-y-[2px] transition-all flex items-center justify-center gap-2 text-xs"
+          >
             <PlayIcon size={20} weight="fill" /> Start Bot Match
           </button>
         </div>

@@ -1,15 +1,21 @@
 import mongoose from 'mongoose';
 import app from './app.js';
 import config from './config/env.js';
+import { setupSocket } from './socket.js';
 
 let server;
 
 mongoose.connect(config.mongodbUri)
   .then(() => {
     console.log('Connected to MongoDB');
+    
+    // We attach it to pure app.listen. It returns http.Server.
     server = app.listen(config.port, () => {
       console.log(`Listening on port ${config.port} in ${config.nodeEnv} mode`);
     });
+
+    // Initialize Socket.IO
+    setupSocket(server, config);
   })
   .catch((error) => {
     console.error('Error connecting to MongoDB:', error);
