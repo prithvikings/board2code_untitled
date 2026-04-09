@@ -1,76 +1,99 @@
-import React from 'react'
+import React from "react";
+import { X, Check } from "@phosphor-icons/react";
 
 const Comparison = () => {
   const rows = [
-    { 
-      feature: "Gameplay", 
-      traditional: "Luck-based", 
-      ludox: "Strategy + AI",
-      highlight: false
+    {
+      feature: "Gameplay Environment",
+      traditional: "Linear Track",
+      tiki: "Vertical Stack",
+      highlight: false,
     },
-    { 
-      feature: "Powers", 
-      traditional: "❌ None", 
-      ludox: "✅ Dynamic",
-      highlight: false
+    {
+      feature: "Core Action",
+      traditional: "Move Any Piece",
+      tiki: "Reorder & Move Top",
+      highlight: false,
     },
-    { 
-      feature: "Multiplayer", 
-      traditional: "Basic", 
-      ludox: "Smart + AI fallback",
-      highlight: false
+    {
+      feature: "Token Accessibility",
+      traditional: "All Tokens Available",
+      tiki: "Restricted (Top 1-3 Only)",
+      highlight: false,
     },
-    { 
-      feature: "Replay Value", 
-      traditional: "Low", 
-      ludox: "Extremely High",
-      highlight: true
+    {
+      feature: "Strategic Depth",
+      traditional: "Basic / Luck-Based",
+      tiki: "Multi-layered & Tactical",
+      highlight: true,
     },
-  ]
+  ];
 
   return (
-    <div className='max-w-5xl mx-auto py-24 px-4'>
-      <div className='text-center mb-16'>
-        <span className='text-[#a3e635] font-bold tracking-widest text-sm uppercase mb-4 block'>
+    <div className="max-w-5xl mx-auto py-24 px-6 relative">
+      {/* Decorative background element */}
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-32 h-64 bg-lime-500/5 blur-[80px] pointer-events-none rounded-full"></div>
+
+      <div className="text-center mb-16 relative z-10">
+        <span className="inline-block px-3 py-1 rounded-full bg-zinc-800 text-zinc-400 font-bold tracking-widest text-xs uppercase mb-4 border border-zinc-700">
           The Verdict
         </span>
-        <h2 className='font-bebas text-6xl md:text-7xl text-white tracking-wide drop-shadow-md'>
-          By The Numbers
+        <h2 className="font-bebas text-6xl md:text-8xl text-white tracking-wide drop-shadow-md">
+          Unmatched <span className="text-lime-400">Depth</span>
         </h2>
       </div>
 
-      <div className='bg-[#18181b] rounded-2xl border-2 border-zinc-800 overflow-hidden shadow-2xl relative'>
-        
-        {/* LudoX Column Highlight Background */}
-        <div className='absolute top-0 right-0 w-1/3 h-full bg-[#a3e635]/5 pointer-events-none'></div>
+      <div className="bg-[#18181b] rounded-3xl border border-zinc-800 overflow-hidden shadow-2xl relative z-10 group">
+        {/* Tiki Topple Column Highlight Background - Added transition */}
+        <div className="absolute top-0 right-0 w-[40%] h-full bg-gradient-to-b from-lime-500/5 to-transparent pointer-events-none border-l border-lime-500/10 group-hover:bg-lime-500/10 transition-colors duration-500"></div>
 
         {/* Header */}
-        <div className='grid grid-cols-3 bg-zinc-900 p-6 border-b-2 border-zinc-800 relative z-10'>
-          <div className='font-bold text-zinc-500 uppercase tracking-widest text-xs md:text-sm'>Feature</div>
-          <div className='font-bold text-zinc-500 uppercase tracking-widest text-xs md:text-sm text-center'>Traditional Ludo</div>
-          <div className='font-bold text-[#a3e635] uppercase tracking-widest text-xs md:text-sm text-center'>LudoX</div>
+        <div className="grid grid-cols-12 bg-zinc-900/80 p-6 md:p-8 border-b border-zinc-800 relative z-10 backdrop-blur-sm">
+          <div className="col-span-4 font-bold text-zinc-500 uppercase tracking-widest text-[10px] md:text-xs">
+            Mechanic
+          </div>
+          <div className="col-span-4 font-bold text-zinc-500 uppercase tracking-widest text-[10px] md:text-xs flex items-center justify-center gap-2">
+            <X size={14} className="text-red-500" />
+            Standard Games
+          </div>
+          <div className="col-span-4 font-bold text-lime-400 uppercase tracking-widest text-[10px] md:text-xs flex items-center justify-center gap-2">
+            <Check size={14} className="text-lime-400" />
+            Tiki Topple
+          </div>
         </div>
 
         {/* Rows */}
-        <div className='relative z-10'>
+        <div className="relative z-10 flex flex-col">
           {rows.map((row, index) => (
-            <div 
-              key={index} 
-              className={`grid grid-cols-3 p-6 items-center transition-colors hover:bg-zinc-800/30 ${
-                index !== rows.length - 1 ? 'border-b border-zinc-800/50' : ''
-              }`}
+            <div
+              key={index}
+              className={`grid grid-cols-12 p-6 md:p-8 items-center transition-all duration-300 hover:bg-zinc-800/40 relative
+                ${index !== rows.length - 1 ? "border-b border-zinc-800/50" : ""}
+              `}
             >
-              <div className='font-medium text-white text-base md:text-lg'>{row.feature}</div>
-              <div className='text-zinc-500 text-center font-medium text-sm md:text-base'>{row.traditional}</div>
-              <div className={`text-center font-bold text-sm md:text-base ${row.highlight ? 'text-white' : 'text-[#a3e635]'}`}>
-                {row.ludox}
+              {/* Row Highlight on Hover */}
+              <div
+                className="absolute inset-y-0 left-0 w-1 bg-lime-400 opacity-0 transition-opacity group-hover:opacity-100"
+                style={{ transitionDelay: `${index * 50}ms` }}
+              ></div>
+
+              <div className="col-span-4 font-semibold text-zinc-200 text-sm md:text-lg font-chakra">
+                {row.feature}
+              </div>
+              <div className="col-span-4 text-zinc-500 text-center font-medium text-xs md:text-sm px-2">
+                {row.traditional}
+              </div>
+              <div
+                className={`col-span-4 text-center font-bold text-sm md:text-base px-2 transition-colors ${row.highlight ? "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" : "text-lime-400"}`}
+              >
+                {row.tiki}
               </div>
             </div>
           ))}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Comparison
+export default Comparison;
