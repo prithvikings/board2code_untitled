@@ -61,7 +61,10 @@ const LocalLobby = () => {
             </div>
           </div>
 
-          <button className="w-full bg-[#18181b] text-white font-bold uppercase tracking-widest py-3.5 rounded-xl border-2 border-[#fb923c] shadow-[0px_4px_0px_0px_#fb923c] hover:bg-[#27272a] hover:-translate-y-0.5 hover:shadow-[0px_6px_0px_0px_#fb923c] active:shadow-[0px_0px_0px_0px_#fb923c] active:translate-y-1 transition-all flex items-center justify-center gap-2">
+          <button 
+            onClick={() => navigate("/game", { state: { player1, player2 } })}
+            className="w-full bg-[#18181b] text-white font-bold uppercase tracking-widest py-3.5 rounded-xl border-2 border-[#fb923c] shadow-[0px_4px_0px_0px_#fb923c] hover:bg-[#27272a] hover:-translate-y-0.5 hover:shadow-[0px_6px_0px_0px_#fb923c] active:shadow-[0px_0px_0px_0px_#fb923c] active:translate-y-1 transition-all flex items-center justify-center gap-2"
+          >
             <PlayIcon size={20} weight="fill" /> Start Local Match
           </button>
         </div>
