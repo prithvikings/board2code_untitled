@@ -8,3 +8,143 @@
 }
 
 @import "tailwindcss";
+
+/* 
+  Custom Driver.js Theme (Tiki Topple / Duolingo Style) 
+*/
+.tiki-tour-theme.driver-popover {
+  background-color: #18181b !important;
+  border: 2px solid #27272a !important;
+  border-bottom-width: 6px !important;
+  border-radius: 24px !important;
+  color: #f4f4f5 !important;
+  font-family: var(--font-chakra) !important;
+  padding: 24px !important;
+  max-width: 350px;
+}
+
+.tiki-tour-theme .driver-popover-title {
+  font-family: var(--font-bebas) !important;
+  font-size: 28px !important;
+  color: #a3e635 !important; /* lime-400 */
+  letter-spacing: 0.05em !important;
+  margin-bottom: 8px !important;
+  line-height: 1 !important;
+}
+
+.tiki-tour-theme .driver-popover-description {
+  color: #a1a1aa !important; /* zinc-400 */
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+}
+
+.tiki-tour-theme .driver-popover-footer {
+  margin-top: 24px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tiki-tour-theme .driver-popover-progress-text {
+  color: #71717a !important; /* zinc-500 */
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.tiki-tour-theme button.driver-popover-next-btn, 
+.tiki-tour-theme button.driver-popover-prev-btn {
+  font-family: var(--font-chakra) !important;
+  border-radius: 12px !important;
+  padding: 8px 16px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+  transition: all 0.15s !important;
+  text-shadow: none !important;
+}
+
+/* Next / Done button */
+.tiki-tour-theme button.driver-popover-next-btn {
+  background-color: #84cc16 !important; /* lime-500 */
+  color: #09090b !important; /* zinc-950 */
+  border: none !important;
+  border-bottom: 3px solid #4d7c0f !important; /* lime-700 */
+}
+
+.tiki-tour-theme button.driver-popover-next-btn:hover {
+  background-color: #a3e635 !important; /* lime-400 */
+}
+
+.tiki-tour-theme button.driver-popover-next-btn:active,
+.tiki-tour-theme button.driver-popover-prev-btn:active {
+  border-bottom-width: 0px !important;
+  transform: translateY(3px) !important;
+}
+
+/* Previous button */
+.tiki-tour-theme button.driver-popover-prev-btn {
+  background-color: #27272a !important;
+  color: #a1a1aa !important;
+  border: none !important;
+  border-bottom: 3px solid #18181b !important;
+}
+
+.tiki-tour-theme button.driver-popover-prev-btn:hover {
+  background-color: #3f3f46 !important;
+  color: #f4f4f5 !important;
+}
+
+.tiki-tour-theme .driver-popover-close-btn {
+  color: #52525b !important; /* zinc-600 */
+  top: 16px !important;
+  right: 16px !important;
+}
+
+.tiki-tour-theme .driver-popover-close-btn:hover {
+  color: #f4f4f5 !important; /* white */
+}
+
+/* Tooltip Arrow */
+.tiki-tour-theme.driver-popover-arrow-bottom {
+  border-top-color: #27272a !important;
+}
+.tiki-tour-theme.driver-popover-arrow-top {
+  border-bottom-color: #27272a !important;
+}
+.tiki-tour-theme.driver-popover-arrow-left {
+  border-right-color: #27272a !important;
+}
+.tiki-tour-theme.driver-popover-arrow-right {
+  border-left-color: #27272a !important;
+}
+
+/* Global Custom Scrollbar (Modern & Dark) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3f3f46; /* text-zinc-700 equivalent */
+  border-radius: 9999px;
+  border: 2px solid #0a0a0a; /* Add default background color as border to give floating effect */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #52525b; /* text-zinc-600 equivalent */
+}
+
+/* Fallback for Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 transparent;
+}

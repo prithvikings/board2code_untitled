@@ -17,11 +17,13 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useAudio } from "../context/AudioContext";
 import toast from "react-hot-toast";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { isMuted, toggleMute } = useAudio();
+  const { isMuted, toggleMute, playSFX } = useAudio();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showGuestModal, setShowGuestModal] = useState(false);
   const dropdownRef = useRef(null);
@@ -35,6 +37,68 @@ const Dashboard = () => {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // First-time user tour using driver.js
+  useEffect(() => {
+    const hasSeenTour = localStorage.getItem("tiki_dashboard_tour_seen");
+    if (!hasSeenTour) {
+      const driverObj = driver({
+        showProgress: true,
+        animate: true,
+        allowClose: true,
+        popoverClass: "tiki-tour-theme",
+        steps: [
+          {
+            popover: {
+              title: "Welcome to Tiki Topple!",
+              description:
+                "Let's take a quick tour of your dashboard to help you get started.",
+            },
+          },
+          {
+            element: "#tour-modes",
+            popover: {
+              title: "Choose Your Arena",
+              description:
+                "Select how you want to play. You can play against our AI Bot, share a screen locally, or create a custom online room for your friends.",
+              side: "top",
+              align: "start",
+            },
+          },
+          {
+            element: "#tour-profile",
+            popover: {
+              title: "Your Account",
+              description:
+                "Access your profile, adjust settings, read the game rules, or log out from here.",
+              side: "bottom",
+              align: "end",
+            },
+          },
+          {
+            element: "#tour-audio",
+            popover: {
+              title: "Audio Controls",
+              description:
+                "Mute or unmute game sounds at any time using this global toggle.",
+              side: "left",
+              align: "end",
+            },
+          },
+        ],
+        onDestroyStarted: () => {
+          localStorage.setItem("tiki_dashboard_tour_seen", "true");
+          driverObj.destroy();
+        },
+      });
+
+      // Delay slightly so the page can fully render
+      const timer = setTimeout(() => {
+        driverObj.drive();
+      }, 600);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const handleLogout = async () => {
@@ -156,6 +220,7 @@ const Dashboard = () => {
           <div className="flex items-center gap-4 relative" ref={dropdownRef}>
             {/* Interactive Profile Trigger (Scaled Down) */}
             <button
+              id="tour-profile"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center gap-2 bg-[#18181b] hover:bg-zinc-800 transition-colors border-2 border-zinc-700 border-b-[3px] pl-1.5 pr-3 py-1 rounded-[14px] cursor-pointer active:border-b-[1px] active:translate-y-[2px]"
             >
@@ -244,11 +309,15 @@ const Dashboard = () => {
         </div>
 
         {/* Tactile Game Modes Grid (Scaled Down) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 pb-12">
+        <div
+          id="tour-modes"
+          className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 pb-12"
+        >
           {modes.map((mode) => (
             <div
               key={mode.id}
               onClick={() => {
+                playSFX("/audio/sfx/click.mp3");
                 if (
                   user?.isGuest &&
                   (mode.id === "ranked" || mode.id === "custom")
@@ -333,6 +402,7 @@ const Dashboard = () => {
 
       {/* Global Audio Controls (Scaled down) */}
       <button
+        id="tour-audio"
         onClick={toggleMute}
         className="fixed bottom-6 right-6 z-50 w-12 h-12 bg-[#18181b] border-2 border-zinc-700 border-b-[3px] flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all rounded-xl active:border-b-0 active:translate-y-[3px] group"
         title={isMuted ? "Unmute Audio" : "Mute Audio"}

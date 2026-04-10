@@ -9,26 +9,48 @@ export const useSocket = () => {
 
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Connect to backend
-    const newSocket = io("http://localhost:5000", {
-      transports: ["websocket", "polling"], // ensure fallback transports
+    const backendUrl =
+      import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+
+    const newSocket = io(backendUrl, {
+      transports: ["websocket", "polling"],
       reconnectionAttempts: 5,
+      withCredentials: true,
     });
 
-    // We are ignoring initial connection errors to prevent UI blocking
+    newSocket.on("connect", () => {
+      console.log("✅ Socket Connected to:", backendUrl);
+      setIsConnected(true);
+      setError(null);
+    });
+
     newSocket.on("connect_error", (err) => {
-      console.warn("Socket Connection Warning:", err.message);
+      console.warn("❌ Socket Connection Error:", err.message);
+      setError(err.message);
+      setIsConnected(false);
+    });
+
+    newSocket.on("disconnect", (reason) => {
+      console.log("🔌 Socket Disconnected:", reason);
+      setIsConnected(false);
     });
 
     setSocket(newSocket);
 
-    return () => newSocket.close();
+    return () => {
+      newSocket.off("connect");
+      newSocket.off("connect_error");
+      newSocket.off("disconnect");
+      newSocket.close();
+    };
   }, []);
 
   return (
-    <SocketContext.Provider value={{ socket }}>
+    <SocketContext.Provider value={{ socket, isConnected, error }}>
       {children}
     </SocketContext.Provider>
   );

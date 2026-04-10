@@ -38,12 +38,16 @@ const Token = ({ color, onClick, isSelected, isTargeted }) => {
         opacity: 1,
         scale: isSelected || isTargeted ? 1.15 : 1,
         y: isSelected || isTargeted ? -10 : 0,
-        boxShadow: isSelected 
-          ? "0 0 30px rgba(250, 204, 21, 0.8)" 
-          : isTargeted 
-          ? "0 0 40px rgba(255, 255, 255, 0.9)" 
-          : "4px 4px 10px rgba(0,0,0,0.5)",
-        outline: isSelected ? "4px solid #facc15" : isTargeted ? "4px solid white" : "0px solid transparent"
+        boxShadow: isSelected
+          ? "0 0 30px rgba(250, 204, 21, 0.8)"
+          : isTargeted
+            ? "0 0 40px rgba(255, 255, 255, 0.9)"
+            : "4px 4px 10px rgba(0,0,0,0.5)",
+        outline: isSelected
+          ? "4px solid #facc15"
+          : isTargeted
+            ? "4px solid white"
+            : "0px solid transparent",
       }}
       exit={{ opacity: 0, y: 50, scale: 0.5, transition: { duration: 0.4 } }}
       transition={{
@@ -54,7 +58,7 @@ const Token = ({ color, onClick, isSelected, isTargeted }) => {
       }}
       onClick={onClick}
       className={`
-        relative w-20 md:w-24 aspect-square rounded-2xl flex items-center justify-center 
+        relative w-16 md:w-20 aspect-square rounded-2xl flex items-center justify-center 
         bg-linear-to-br ${gradient} border-t-2 border-l-2 shadow-[4px_4px_10px_rgba(0,0,0,0.5)]
         cursor-pointer transition-all shrink-0
         ${isSelected ? "z-30" : "hover:-translate-y-1 hover:shadow-[4px_8px_15px_rgba(0,0,0,0.5)]"}
@@ -69,13 +73,13 @@ const Token = ({ color, onClick, isSelected, isTargeted }) => {
             exit={{ opacity: 0, scale: 0 }}
             className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white text-zinc-950 flex items-center justify-center shadow-lg z-50 border-2 border-zinc-900"
           >
-             <div className="w-4 h-4 rounded-full bg-lime-500 animate-pulse"></div>
+            <div className="w-4 h-4 rounded-full bg-lime-500 animate-pulse"></div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-black/20 flex items-center justify-center border-b-2 border-black/40">
-        <span className="font-bebas text-xl md:text-2xl text-white/90 uppercase tracking-widest drop-shadow-md">
+      <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-black/20 flex items-center justify-center border-b-2 border-black/40">
+        <span className="font-bebas text-lg md:text-xl text-white/90 uppercase tracking-widest drop-shadow-md">
           {color.substring(0, 3)}
         </span>
       </div>

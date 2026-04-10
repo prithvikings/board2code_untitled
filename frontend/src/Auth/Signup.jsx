@@ -21,6 +21,7 @@ const Signup = () => {
 
     try {
       await register(name, email, password);
+      localStorage.removeItem("tiki_dashboard_tour_seen");
       toast.success("Account created successfully! Welcome to Tiki Topple.");
       navigate("/dashboard");
     } catch (error) {

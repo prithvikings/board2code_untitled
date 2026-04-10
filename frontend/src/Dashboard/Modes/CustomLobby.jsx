@@ -5,6 +5,8 @@ import {
   ArrowLeft as ArrowLeftIcon,
   UsersThree as UsersThreeIcon,
   Link as LinkIcon,
+  Plus as PlusIcon,
+  Minus as MinusIcon,
 } from "@phosphor-icons/react";
 
 const CustomLobby = () => {
@@ -12,12 +14,13 @@ const CustomLobby = () => {
   const { socket } = useSocket();
   const [playerName, setPlayerName] = useState("");
   const [roomCode, setRoomCode] = useState("");
+  const [targetScore, setTargetScore] = useState(50);
   const [loading, setLoading] = useState(false);
 
   const handleCreateRoom = () => {
     if (!socket) return alert("Not connected to server");
     setLoading(true);
-    socket.emit("createGame", { playerName: playerName || "Host" }, (res) => {
+    socket.emit("createGame", { playerName: playerName || "Host", targetScore }, (res) => {
       setLoading(false);
       if (res.success) {
         navigate("/game");
@@ -120,6 +123,32 @@ const CustomLobby = () => {
                 OR
               </span>
               <div className="h-[2px] flex-1 bg-zinc-800 rounded-full"></div>
+            </div>
+
+            {/* Target Score Selector */}
+            <div className="flex items-center justify-between bg-zinc-900 border-2 border-zinc-800 border-b-[4px] rounded-2xl p-4">
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                Target Score (New Room)
+              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setTargetScore((p) => Math.max(10, p - 10))}
+                  disabled={targetScore <= 10}
+                  className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 border-b-2 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 active:border-b-0 active:translate-y-[2px] disabled:opacity-30 disabled:active:border-b-2 disabled:active:translate-y-0 transition-all"
+                >
+                  <MinusIcon size={14} weight="bold" />
+                </button>
+                <span className="text-2xl font-mono font-bold text-purple-500 w-10 text-center">
+                  {targetScore}
+                </span>
+                <button
+                  onClick={() => setTargetScore((p) => Math.min(200, p + 10))}
+                  disabled={targetScore >= 200}
+                  className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 border-b-2 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 active:border-b-0 active:translate-y-[2px] disabled:opacity-30 disabled:active:border-b-2 disabled:active:translate-y-0 transition-all"
+                >
+                  <PlusIcon size={14} weight="bold" />
+                </button>
+              </div>
             </div>
 
             <button

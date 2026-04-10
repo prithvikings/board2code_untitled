@@ -4,11 +4,14 @@ import {
   ArrowLeft as ArrowLeftIcon,
   Robot as RobotIcon,
   Play as PlayIcon,
+  Plus as PlusIcon,
+  Minus as MinusIcon,
 } from "@phosphor-icons/react";
 
 const BotLobby = () => {
   const navigate = useNavigate();
   const [difficulty, setDifficulty] = useState("medium");
+  const [targetScore, setTargetScore] = useState(50);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-zinc-100 font-chakra p-4 md:p-8 relative flex flex-col items-center justify-center">
@@ -43,6 +46,32 @@ const BotLobby = () => {
         </p>
 
         <div className="bg-[#18181b] border-2 border-zinc-800 border-b-[6px] p-6 md:p-8 rounded-[24px] relative text-left">
+          {/* Target Score Selector */}
+          <div className="flex items-center justify-between mb-6 bg-zinc-900 border-2 border-zinc-800 border-b-[4px] rounded-2xl p-4">
+            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+              Target Score to Win
+            </span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setTargetScore((p) => Math.max(10, p - 10))}
+                disabled={targetScore <= 10}
+                className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 border-b-2 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 active:border-b-0 active:translate-y-[2px] disabled:opacity-30 disabled:active:border-b-2 disabled:active:translate-y-0 transition-all"
+              >
+                <MinusIcon size={14} weight="bold" />
+              </button>
+              <span className="text-2xl font-mono font-bold text-blue-500 w-10 text-center">
+                {targetScore}
+              </span>
+              <button
+                onClick={() => setTargetScore((p) => Math.min(200, p + 10))}
+                disabled={targetScore >= 200}
+                className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 border-b-2 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 active:border-b-0 active:translate-y-[2px] disabled:opacity-30 disabled:active:border-b-2 disabled:active:translate-y-0 transition-all"
+              >
+                <PlusIcon size={14} weight="bold" />
+              </button>
+            </div>
+          </div>
+
           <h3 className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-4 pl-1">
             Select AI Difficulty
           </h3>
@@ -81,7 +110,7 @@ const BotLobby = () => {
           </div>
 
           <button
-            onClick={() => navigate("/bot-game", { state: { difficulty } })}
+            onClick={() => navigate("/bot-game", { state: { difficulty, targetScore } })}
             className="w-full bg-blue-500 text-zinc-950 font-black uppercase tracking-widest py-4 rounded-xl border-2 border-blue-700 border-b-[4px] hover:bg-blue-400 active:border-b-[2px] active:translate-y-[2px] transition-all flex items-center justify-center gap-2 text-xs"
           >
             <PlayIcon size={20} weight="fill" /> Start Bot Match

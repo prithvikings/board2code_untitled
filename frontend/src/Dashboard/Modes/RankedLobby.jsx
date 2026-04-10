@@ -4,6 +4,8 @@ import {
   ArrowLeft as ArrowLeftIcon,
   GameController as GameControllerIcon,
   MagnifyingGlass as MagnifyingGlassIcon,
+  Plus as PlusIcon,
+  Minus as MinusIcon,
 } from "@phosphor-icons/react";
 import { useSocket } from "../../context/SocketContext";
 import { useAuth } from "../../context/AuthContext";
@@ -21,6 +23,7 @@ const RankedLobby = () => {
   const [accepted, setAccepted] = useState(false);
   const [opponentAccepted, setOpponentAccepted] = useState(false);
   const [countdown, setCountdown] = useState(10);
+  const [targetScore, setTargetScore] = useState(50);
 
   useEffect(() => {
     if (!socket) return;
@@ -87,6 +90,7 @@ const RankedLobby = () => {
     socket.emit("findMatch", {
       playerName: user.name,
       elo: user.stats?.elo || 1200,
+      targetScore,
     });
   };
 
@@ -173,6 +177,33 @@ const RankedLobby = () => {
                   {user?.stats?.elo || 1200}
                 </span>
               </div>
+
+              {/* Target Score Selector */}
+              <div className="flex items-center justify-between bg-zinc-900 border-2 border-zinc-800 border-b-[4px] rounded-2xl p-4">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                  Target Score
+                </span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setTargetScore((p) => Math.max(10, p - 10))}
+                    disabled={targetScore <= 10}
+                    className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 border-b-2 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 active:border-b-0 active:translate-y-[2px] disabled:opacity-30 disabled:active:border-b-2 disabled:active:translate-y-0 transition-all"
+                  >
+                    <MinusIcon size={14} weight="bold" />
+                  </button>
+                  <span className="text-2xl font-mono font-bold text-lime-500 w-10 text-center">
+                    {targetScore}
+                  </span>
+                  <button
+                    onClick={() => setTargetScore((p) => Math.min(200, p + 10))}
+                    disabled={targetScore >= 200}
+                    className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 border-b-2 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 active:border-b-0 active:translate-y-[2px] disabled:opacity-30 disabled:active:border-b-2 disabled:active:translate-y-0 transition-all"
+                  >
+                    <PlusIcon size={14} weight="bold" />
+                  </button>
+                </div>
+              </div>
+
               <button
                 onClick={handleStartSearch}
                 className="w-full bg-lime-500 text-zinc-950 font-black uppercase tracking-widest py-4 rounded-xl border-2 border-lime-700 border-b-[4px] hover:bg-lime-400 active:border-b-[2px] active:translate-y-[2px] transition-all flex items-center justify-center gap-2 text-xs"

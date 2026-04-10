@@ -23,6 +23,19 @@ export const shuffleArray = (array) => {
   return newArr;
 };
 
+/**
+ * Assign exactly 2 unique colors to each player at game start.
+ * These remain FIXED for the entire game duration.
+ */
+export const assignPlayerColors = (numPlayers) => {
+  const assignments = [];
+  for (let i = 0; i < numPlayers; i++) {
+    const shuffled = shuffleArray(TIKI_COLORS);
+    assignments.push(shuffled.slice(0, 2));
+  }
+  return assignments; // [[color1, color2], [color3, color4], ...]
+};
+
 // Generates a unique ID for a color, useful for toppling to trigger enter/exit animations
 const generateId = (color) =>
   `${color}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
@@ -63,18 +76,20 @@ export const createInitialHand = () => {
   ];
 };
 
-// Generates a random rule for a single player
-export const generateRule = () => {
-  const randomColor =
-    TIKI_COLORS[Math.floor(Math.random() * TIKI_COLORS.length)];
-  const maxPosition = Math.floor(Math.random() * 3) + 1; // 1, 2, or 3
-  const points = Math.floor(Math.random() * 5) + 1; // 1 to 5
+// Generates a random set of rules for given colors
+export const generatePlayerRoundRules = (colors) => {
+  return colors.map((color) => {
+    const operator = Math.random() > 0.5 ? "≤" : "≥";
+    const position = Math.floor(Math.random() * 3) + 1; // 1, 2, or 3
+    const points = Math.floor(Math.random() * 4) + 2; // 2 to 5
 
-  return {
-    color: randomColor,
-    maxPosition,
-    points,
-  };
+    return {
+      color,
+      operator,
+      position,
+      points,
+    };
+  });
 };
 
 /**
@@ -138,26 +153,41 @@ export const executeCard = (tikiLine, playerName, card) => {
 };
 
 /**
- * Score a single player based on the final tiki line's top 3 positions and their custom dynamic rule.
+ * Score a single player based on the new Anti-Gravity system.
+ * Evaluates 2 rules per player against the top 3 tiki positions.
  */
-export const calculateDynamicScore = (tikiLine, rule) => {
+export const calculateAntiGravityScore = (tikiLine, rules) => {
   let score = 0;
   const breakdown = [];
-
   const topThree = tikiLine.slice(0, 3);
-  const pos = topThree.findIndex((t) => t.color === rule.color);
 
-  if (pos !== -1 && pos < rule.maxPosition) {
-    score = rule.points;
-    breakdown.push(
-      `Success! ${rule.color} is at position ${pos + 1} (≤ ${rule.maxPosition}) → +${rule.points} pts`,
-    );
-  } else {
-    const actualPos = tikiLine.findIndex((t) => t.color === rule.color);
-    breakdown.push(
-      `Failed. ${rule.color} finished at position ${actualPos + 1}. Needed ≤ ${rule.maxPosition}.`,
-    );
-  }
+  rules.forEach((rule) => {
+    // Find color position in the full line (but we only care if it's in top 3 for scoring context)
+    const actualIdx = tikiLine.findIndex((t) => t.color === rule.color);
+    const pos = actualIdx + 1; // 1-indexed
+
+    // If color is not in top 3, it technically can't satisfy ≤ or ≥ rules in the way physical game intended,
+    // but the user spec says "Only evaluate FIRST 3 positions".
+    // This usually means if it's not in top 3, it's ignored for scoring.
+
+    if (actualIdx !== -1 && actualIdx < 3) {
+      const satisfied =
+        rule.operator === "≤" ? pos <= rule.position : pos >= rule.position;
+
+      if (satisfied) {
+        score += rule.points;
+        breakdown.push(
+          `Success: ${rule.color.toUpperCase()} ${rule.operator} ${rule.position} (Value: ${pos}) → +${rule.points} pts`,
+        );
+      } else {
+        breakdown.push(
+          `Failed: ${rule.color.toUpperCase()} ${rule.operator} ${rule.position} (Value: ${pos})`,
+        );
+      }
+    } else {
+      breakdown.push(`Failed: ${rule.color.toUpperCase()} not in top 3.`);
+    }
+  });
 
   return { score, breakdown };
 };
@@ -210,14 +240,20 @@ export const resolveRound = (tikiLine, players) => {
 };
 
 export const resetPlayersForNewRound = (players) => {
-  return players.map((p) => ({
-    ...p,
-    hand: createInitialHand(),
-    rule: generateRule(),
-    selectedCards: [],
-    hasSelected: false,
-    roundScore: 0,
-  }));
+  return players.map((p) => {
+    const roundColors = shuffleArray(TIKI_COLORS).slice(0, 2);
+    const rules = generatePlayerRoundRules(roundColors);
+
+    return {
+      ...p,
+      hand: createInitialHand(),
+      rules,
+      roundColors,
+      selectedCards: [],
+      hasSelected: false,
+      roundScore: 0,
+    };
+  });
 };
 
 export const generateInitialTikiLine = () => {

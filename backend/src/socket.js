@@ -2,17 +2,17 @@ import { Server } from "socket.io";
 import {
   createInitialHand,
   assignSecretColors,
-  executeCard,
-  calculateScores
+  generatePlayerRoundRules,
+  generateInitialTikiLine,
+  resolveRound,
+  calculateAntiGravityScore
 } from "./gamelogic/gameEngine.js";
 
 // Global dictionary to store rooms
 const gameRooms = {};
-const roomIntervals = {}; 
 const matchmakingQueue = [];
 const pendingMatches = {}; // { matchId: { p1, p2, accepted: [], timer } }
-const TIMER_DURATION = 30;
-const ACCEPT_TIMEOUT = 12000; // 12 seconds to account for network lag
+const ACCEPT_TIMEOUT = 12000;
 
 function assignMatch(io) {
   if (matchmakingQueue.length < 2) return;
@@ -20,26 +20,35 @@ function assignMatch(io) {
   const p1_data = matchmakingQueue.shift();
   const p2_data = matchmakingQueue.shift();
 
-  const matchId = "MATCH-" + Math.random().toString(36).substring(2, 6).toUpperCase();
-  
+  const matchId =
+    "MATCH-" + Math.random().toString(36).substring(2, 6).toUpperCase();
+
   pendingMatches[matchId] = {
     players: [p1_data, p2_data],
     accepted: [],
     timeout: setTimeout(() => {
       handleMatchSelectionTimeout(io, matchId);
-    }, ACCEPT_TIMEOUT)
+    }, ACCEPT_TIMEOUT),
   };
 
-  io.to(p1_data.socketId).emit("matchFound", { matchId, opponentName: p2_data.name });
-  io.to(p2_data.socketId).emit("matchFound", { matchId, opponentName: p1_data.name });
+  io.to(p1_data.socketId).emit("matchFound", {
+    matchId,
+    opponentName: p2_data.name,
+  });
+  io.to(p2_data.socketId).emit("matchFound", {
+    matchId,
+    opponentName: p1_data.name,
+  });
 }
 
 function handleMatchSelectionTimeout(io, matchId) {
   const match = pendingMatches[matchId];
   if (!match) return;
 
-  match.players.forEach(p => {
-    io.to(p.socketId).emit("matchCancelled", { reason: "Timeout: Players failed to accept" });
+  match.players.forEach((p) => {
+    io.to(p.socketId).emit("matchCancelled", {
+      reason: "Timeout: Players failed to accept",
+    });
   });
 
   delete pendingMatches[matchId];
@@ -51,22 +60,52 @@ function createRankedGame(io, matchId) {
 
   clearTimeout(match.timeout);
 
-  const roomId = "RANK-" + Math.random().toString(36).substring(2, 6).toUpperCase();
+  const roomId =
+    "RANK-" + Math.random().toString(36).substring(2, 6).toUpperCase();
   const p1 = match.players[0];
   const p2 = match.players[1];
+
+  const p1Colors = assignSecretColors();
+  const p2Colors = assignSecretColors();
 
   const gameState = {
     roomId,
     status: "playing",
+    roundPhase: "selecting",
+    currentRound: 1,
+    targetScore: p1.targetScore || 50,
     players: [
-      { socketId: p1.socketId, name: p1.name, secretColors: assignSecretColors(), hand: createInitialHand(), score: 0, isHost: true },
-      { socketId: p2.socketId, name: p2.name, secretColors: assignSecretColors(), hand: createInitialHand(), score: 0, isHost: false }
+      {
+        socketId: p1.socketId,
+        name: p1.name,
+        hand: createInitialHand(),
+        totalScore: 0,
+        roundScore: 0,
+        isHost: true,
+        roundColors: p1Colors,
+        rules: generatePlayerRoundRules(p1Colors),
+        selectedCards: [],
+        hasSelected: false,
+        readyForNext: false,
+        scoreHistory: [],
+      },
+      {
+        socketId: p2.socketId,
+        name: p2.name,
+        hand: createInitialHand(),
+        totalScore: 0,
+        roundScore: 0,
+        isHost: false,
+        roundColors: p2Colors,
+        rules: generatePlayerRoundRules(p2Colors),
+        selectedCards: [],
+        hasSelected: false,
+        readyForNext: false,
+        scoreHistory: [],
+      },
     ],
-    tikiLine: ["red", "blue", "green", "yellow", "purple", "orange"],
+    tikiLine: generateInitialTikiLine(),
     logs: ["Match Accepted! Competitive battle starting."],
-    timeLeft: TIMER_DURATION,
-    currentTurnIndex: Math.floor(Math.random() * 2),
-    isRanked: true
   };
 
   gameRooms[roomId] = gameState;
@@ -75,87 +114,43 @@ function createRankedGame(io, matchId) {
 
   io.to(roomId).emit("matchAccepted", { roomId });
   io.to(roomId).emit("gameStateUpdated", gameState);
-  startRoomTimer(io, roomId);
 
   delete pendingMatches[matchId];
 }
 
-function startRoomTimer(io, roomId) {
-  if (roomIntervals[roomId]) clearInterval(roomIntervals[roomId]);
-
+function triggerResolution(io, roomId) {
   const room = gameRooms[roomId];
   if (!room) return;
 
-  room.timeLeft = TIMER_DURATION;
-  io.to(roomId).emit("gameStateUpdated", room);
+  room.roundPhase = "resolving";
+  room.logs.push("--- Resolution starting ---");
 
-  roomIntervals[roomId] = setInterval(() => {
-    const r = gameRooms[roomId];
-    if (!r || r.status !== "playing") {
-      clearInterval(roomIntervals[roomId]);
-      delete roomIntervals[roomId];
-      return;
-    }
-
-    r.timeLeft -= 1;
-
-    if (r.timeLeft <= 0) {
-      clearInterval(roomIntervals[roomId]);
-      delete roomIntervals[roomId];
-
-      // Auto-play for the current player
-      const currentPlayer = r.players[r.currentTurnIndex];
-      if (currentPlayer && currentPlayer.hand.length > 0) {
-        const randomCard = currentPlayer.hand[0];
-        // If it needs targets, we just pick random colors from the line
-        const payload = {
-          ...randomCard,
-          target1: r.tikiLine[0],
-          target2: r.tikiLine[1] || null
-        };
-        
-        handlePlayAction(io, roomId, currentPlayer.socketId, payload);
-      }
-    }
-    
-    io.to(roomId).emit("gameStateUpdated", r);
-  }, 1000);
-}
-
-function handlePlayAction(io, roomId, socketId, cardData) {
-  const room = gameRooms[roomId];
-  if (!room || room.status !== "playing") return;
-
-  const playerIdx = room.players.findIndex(p => p.socketId === socketId);
-  if (playerIdx === -1 || playerIdx !== room.currentTurnIndex) return;
-
-  const player = room.players[playerIdx];
-  const handIdx = player.hand.findIndex(c => c.id === cardData.id);
-  if (handIdx === -1) return;
-
-  // Execute
-  const roundEnded = executeCard(room, player, cardData);
+  const { steps, finalLine } = resolveRound(room.tikiLine, room.players);
   
-  // Remove card from hand
-  player.hand.splice(handIdx, 1);
+  // Calculate final scores
+  const scoreData = room.players.map((p) => {
+    const { score, breakdown } = calculateAntiGravityScore(finalLine, p.rules);
+    p.roundScore = score;
+    p.totalScore += score;
+    p.scoreHistory.push(score);
 
-  if (roundEnded || room.players.every(p => p.hand.length === 0)) {
-    // Scoring
-    room.logs.push("--- Round Ended! Calculating Scores ---");
-    calculateScores(room);
-    
-    // Check if game should end or start new round
-    // For now, let's just end the game after one round or reset hands
-    // simplified: just end game if someone hits target or everyone played
-    room.status = "finished"; 
-    room.logs.push("Game Over! Final scores calculated.");
-  } else {
-    // Next Turn
-    room.currentTurnIndex = (room.currentTurnIndex + 1) % room.players.length;
-    room.logs.push(`It is now ${room.players[room.currentTurnIndex].name}'s turn.`);
-    startRoomTimer(io, roomId);
-  }
+    return {
+      socketId: p.socketId,
+      name: p.name,
+      roundScore: score,
+      totalScore: p.totalScore,
+      rules: p.rules,
+      roundColors: p.roundColors,
+      breakdown,
+    };
+  });
 
+  room.tikiLine = finalLine;
+  room.status = room.players.some(p => p.totalScore >= room.targetScore) ? "game_over" : "playing";
+
+  io.to(roomId).emit("roundResolved", { steps, finalLine, scoreData, newStatus: room.status });
+  
+  room.roundPhase = "round_scoring"; 
   io.to(roomId).emit("gameStateUpdated", room);
 }
 
@@ -171,27 +166,36 @@ export function setupSocket(server, config) {
   io.on("connection", (socket) => {
     console.log(`Socket connected: ${socket.id}`);
 
-    socket.on("createGame", ({ playerName }, callback) => {
-      const roomId = "TK-" + Math.random().toString(36).substring(2, 6).toUpperCase();
-      
+    socket.on("createGame", ({ playerName, targetScore }, callback) => {
+      const roomId =
+        "TK-" + Math.random().toString(36).substring(2, 6).toUpperCase();
+
+      const pColors = assignSecretColors();
+
       const hostPlayer = {
         socketId: socket.id,
         name: playerName || `Player-${Math.random().toString(36).substring(2, 5)}`,
-        secretColors: assignSecretColors(),
         hand: createInitialHand(),
-        score: 0,
+        totalScore: 0,
+        roundScore: 0,
         isHost: true,
+        roundColors: pColors,
+        rules: generatePlayerRoundRules(pColors),
+        selectedCards: [],
+        hasSelected: false,
+        readyForNext: false,
+        scoreHistory: []
       };
 
       const gameState = {
         roomId,
         status: "waiting",
-        roundPhase: "play", // selection -> play
+        roundPhase: "selecting",
+        currentRound: 1,
+        targetScore: targetScore || 50,
         players: [hostPlayer],
-        tikiLine: ["red", "blue", "green", "yellow", "purple", "orange"],
+        tikiLine: generateInitialTikiLine(),
         logs: ["Game created. Waiting for players..."],
-        timeLeft: 0,
-        currentTurnIndex: 0,
       };
 
       gameRooms[roomId] = gameState;
@@ -205,18 +209,25 @@ export function setupSocket(server, config) {
       if (!room || room.status !== "waiting") {
         return callback && callback({ success: false, message: "Room not found or in progress" });
       }
-      
+
       if (room.players.length >= 4) {
         return callback && callback({ success: false, message: "Room is full" });
       }
 
+      const pColors = assignSecretColors();
       const player = {
         socketId: socket.id,
         name: playerName || `Player-${Math.random().toString(36).substring(2, 5)}`,
-        secretColors: assignSecretColors(),
         hand: createInitialHand(),
-        score: 0,
+        totalScore: 0,
+        roundScore: 0,
         isHost: false,
+        roundColors: pColors,
+        rules: generatePlayerRoundRules(pColors),
+        selectedCards: [],
+        hasSelected: false,
+        readyForNext: false,
+        scoreHistory: []
       };
 
       room.players.push(player);
@@ -229,30 +240,100 @@ export function setupSocket(server, config) {
     socket.on("startGame", ({ roomId }, callback) => {
       const room = gameRooms[roomId];
       if (!room) return;
-      
-      const host = room.players[0];
-      if (host.socketId !== socket.id) return;
+
+      const host = room.players.find(p => p.isHost);
+      if (!host || host.socketId !== socket.id) return;
 
       if (room.players.length < 2) {
         return callback && callback({ success: false, message: "Need at least 2 players" });
       }
 
       room.status = "playing";
-      room.currentTurnIndex = Math.floor(Math.random() * room.players.length);
-      room.logs.push(`The game has started! ${room.players[room.currentTurnIndex].name} goes first.`);
-      
-      startRoomTimer(io, roomId);
+      room.roundPhase = "selecting";
+      room.tikiLine = generateInitialTikiLine(); // clean start
+      room.logs.push("The game has started! Selection phase begins.");
+
       io.to(roomId).emit("gameStateUpdated", room);
       if (callback) callback({ success: true });
     });
 
-    socket.on("playCard", ({ roomId, card }, callback) => {
-      handlePlayAction(io, roomId, socket.id, card);
+    socket.on("lockInCards", ({ roomId, selectedCards }, callback) => {
+      const room = gameRooms[roomId];
+      if (!room || room.status !== "playing" || room.roundPhase !== "selecting") return;
+
+      const player = room.players.find((p) => p.socketId === socket.id);
+      if (!player || player.hasSelected) return;
+
+      player.selectedCards = selectedCards;
+      player.hasSelected = true;
+      player.hand = player.hand.filter(h => !selectedCards.find(c => c.id === h.id));
+      
+      room.logs.push(`${player.name} locked in their actions.`);
+      io.to(roomId).emit("gameStateUpdated", room);
+
+      if (room.players.every((p) => p.hasSelected)) {
+        triggerResolution(io, roomId);
+      }
+
+      if (callback) callback({ success: true });
+    });
+
+    socket.on("readyForNextRound", ({ roomId }, callback) => {
+      const room = gameRooms[roomId];
+      if (!room || (room.roundPhase !== "round_scoring" && room.status !== "game_over")) return;
+
+      const player = room.players.find((p) => p.socketId === socket.id);
+      if (!player) return;
+
+      player.readyForNext = true;
+      io.to(roomId).emit("gameStateUpdated", room);
+
+      if (room.players.every((p) => p.readyForNext)) {
+        if (room.status === "game_over") {
+            // Replay Match
+            room.currentRound = 1;
+            room.status = "playing";
+            room.roundPhase = "selecting";
+            room.tikiLine = generateInitialTikiLine();
+            room.logs = ["A new match has begun!"];
+            room.players.forEach(p => {
+               p.totalScore = 0;
+               p.roundScore = 0;
+               p.scoreHistory = [];
+               const colors = assignSecretColors();
+               p.roundColors = colors;
+               p.rules = generatePlayerRoundRules(colors);
+               p.hand = createInitialHand();
+               p.selectedCards = [];
+               p.hasSelected = false;
+               p.readyForNext = false;
+            });
+        } else {
+            // Next Round
+            room.currentRound++;
+            room.roundPhase = "selecting";
+            room.tikiLine = generateInitialTikiLine();
+            room.logs.push(`Round ${room.currentRound} starting.`);
+            room.players.forEach(p => {
+                const colors = assignSecretColors();
+                p.roundColors = colors;
+                p.rules = generatePlayerRoundRules(colors);
+                p.hand = createInitialHand();
+                p.selectedCards = [];
+                p.hasSelected = false;
+                p.readyForNext = false;
+                p.roundScore = 0;
+            });
+        }
+
+        io.to(roomId).emit("gameStateUpdated", room);
+      }
+      
       if (callback) callback({ success: true });
     });
 
     socket.on("getGameState", (callback) => {
-      const roomId = Array.from(socket.rooms).find(r => r.startsWith("TK-"));
+      const roomId = Array.from(socket.rooms).find((r) => r.startsWith("TK-") || r.startsWith("RANK-") || r.startsWith("MATCH-"));
       if (roomId && gameRooms[roomId]) {
         callback(gameRooms[roomId]);
       } else {
@@ -263,8 +344,8 @@ export function setupSocket(server, config) {
     socket.on("leaveGame", ({ roomId }) => {
       const room = gameRooms[roomId];
       if (!room) return;
-      
-      const idx = room.players.findIndex(p => p.socketId === socket.id);
+
+      const idx = room.players.findIndex((p) => p.socketId === socket.id);
       if (idx !== -1) {
         const pName = room.players[idx].name;
         room.logs.push(`${pName} left.`);
@@ -275,17 +356,17 @@ export function setupSocket(server, config) {
         if (room.players.length === 0) {
           delete gameRooms[roomId];
         } else {
-          if (!room.players.some(p => p.isHost)) room.players[0].isHost = true;
-          // If the active player left, move to next
-          if (room.currentTurnIndex >= room.players.length) room.currentTurnIndex = 0;
+          if (!room.players.some((p) => p.isHost))
+            room.players[0].isHost = true;
           io.to(roomId).emit("gameStateUpdated", room);
         }
       }
     });
 
     socket.on("disconnect", () => {
-      // Remove from matchmaking queue
-      const queueIdx = matchmakingQueue.findIndex(p => p.socketId === socket.id);
+      const queueIdx = matchmakingQueue.findIndex(
+        (p) => p.socketId === socket.id,
+      );
       if (queueIdx !== -1) {
         matchmakingQueue.splice(queueIdx, 1);
         console.log(`Player removed from queue: ${socket.id}`);
@@ -293,44 +374,38 @@ export function setupSocket(server, config) {
 
       Object.keys(gameRooms).forEach((roomId) => {
         const room = gameRooms[roomId];
-        const idx = room.players.findIndex(p => p.socketId === socket.id);
+        const idx = room.players.findIndex((p) => p.socketId === socket.id);
         if (idx !== -1) {
           const pName = room.players[idx].name;
           room.logs.push(`${pName} disconnected.`);
           io.to(roomId).emit("opponentLeft", { name: pName });
           room.players.splice(idx, 1);
           if (room.players.length === 0) {
-             delete gameRooms[roomId];
+            delete gameRooms[roomId];
           } else {
-             if (!room.players.some(p => p.isHost)) room.players[0].isHost = true;
-             if (room.currentTurnIndex >= room.players.length) room.currentTurnIndex = 0;
-             io.to(roomId).emit("gameStateUpdated", room);
+            if (!room.players.some((p) => p.isHost))
+              room.players[0].isHost = true;
+            io.to(roomId).emit("gameStateUpdated", room);
           }
         }
       });
     });
 
-    socket.on("findMatch", ({ playerName, elo }) => {
-      // Avoid duplicate entry
-      if (matchmakingQueue.some(p => p.socketId === socket.id)) return;
-
+    socket.on("findMatch", ({ playerName, elo, targetScore }) => {
+      if (matchmakingQueue.some((p) => p.socketId === socket.id)) return;
       matchmakingQueue.push({
         socketId: socket.id,
         socket,
         name: playerName,
-        elo: elo || 1200
+        elo: elo || 1200,
+        targetScore: targetScore || 50,
       });
-      console.log(`Player joined queue: ${playerName} (${socket.id})`);
-      
       assignMatch(io);
     });
 
     socket.on("cancelMatchmaking", () => {
-      const idx = matchmakingQueue.findIndex(p => p.socketId === socket.id);
-      if (idx !== -1) {
-        matchmakingQueue.splice(idx, 1);
-        console.log(`Matchmaking cancelled for: ${socket.id}`);
-      }
+      const idx = matchmakingQueue.findIndex((p) => p.socketId === socket.id);
+      if (idx !== -1) matchmakingQueue.splice(idx, 1);
     });
 
     socket.on("acceptMatch", ({ matchId }) => {
@@ -339,12 +414,11 @@ export function setupSocket(server, config) {
 
       if (!match.accepted.includes(socket.id)) {
         match.accepted.push(socket.id);
-        
+
         if (match.accepted.length === 2) {
           createRankedGame(io, matchId);
         } else {
-          // Notify other player that this player accepted
-          const other = match.players.find(p => p.socketId !== socket.id);
+          const other = match.players.find((p) => p.socketId !== socket.id);
           if (other) io.to(other.socketId).emit("opponentAccepted");
         }
       }
@@ -354,8 +428,10 @@ export function setupSocket(server, config) {
       const match = pendingMatches[matchId];
       if (!match) return;
 
-      match.players.forEach(p => {
-        io.to(p.socketId).emit("matchCancelled", { reason: "A player declined the match." });
+      match.players.forEach((p) => {
+        io.to(p.socketId).emit("matchCancelled", {
+          reason: "A player declined the match.",
+        });
       });
 
       delete pendingMatches[matchId];

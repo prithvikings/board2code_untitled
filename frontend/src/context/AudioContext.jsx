@@ -25,8 +25,15 @@ export const AudioProvider = ({ children }) => {
     }
   };
 
+  const playSFX = (path) => {
+    if (isMuted) return;
+    const sfx = new Audio(path);
+    sfx.volume = 0.8; // SFX slightly louder than background music usually
+    sfx.play().catch(e => console.warn("SFX playback failed", e));
+  };
+
   return (
-    <AudioContext.Provider value={{ isMuted, toggleMute, setIsMuted, musicVolume, setMusicVolume }}>
+    <AudioContext.Provider value={{ isMuted, toggleMute, setIsMuted, musicVolume, setMusicVolume, playSFX }}>
       {/* Hidden Global Audio Element pointing to public folder */}
       <audio ref={audioRef} src="/audio/music/backgroundmusic.mp3" loop />
       {children}
